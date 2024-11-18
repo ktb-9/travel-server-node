@@ -3,11 +3,10 @@ import axios from "axios";
 import { generateToken, generateRefreshToken } from "../authorization/jwt";
 class KakaoService {
   private db: Pool;
-  private readonly KAKAO_CLIENT_ID: string = "38789b5f2f2e16d6229dbc25dc0c776b";
+  private readonly KAKAO_CLIENT_ID: string = process.env.KAKAO_CLIENT_ID!;
   private readonly KAKAO_CLIENT_SECRET: string =
-    "Z9bv6VkeepRe2CmkjuPdgLY0HA1x7lGf";
-  private readonly REDIRECT_URI: string =
-    "http://healthkungya.s3-website.ap-northeast-2.amazonaws.com/oauth/kakao/callback";
+    process.env.KAKAO_CLIENT_SECRET!;
+  private readonly REDIRECT_URI: string = process.env.REDIRECT_URI!;
 
   constructor(db: Pool) {
     this.db = db;
