@@ -9,12 +9,12 @@ const groupController = new GroupController();
 router.post("/", verifyTokenMiddleware, groupController.createGroup);
 router.get("/:groupId", verifyTokenMiddleware, groupController.getGroupDetails);
 
-// // 초대 링크 관련
-// router.post(
-//   "/invite/:groupId",
-//   verifyTokenMiddleware,
-//   groupController.createInviteLink
-// );
+// 초대 링크 관련
+router.post(
+  "/invite/:groupId",
+  verifyTokenMiddleware,
+  groupController.createInviteLink
+);
 // router.get("/join/:inviteId", verifyTokenMiddleware, groupController.joinGroup);
 
 // 그룹 멤버 관련

@@ -53,6 +53,26 @@ class GroupController {
     }
   };
 
+  public createInviteLink = async (req: AuthRequest, res: Response) => {
+    try {
+      const { groupId } = req.params;
+
+      if (!req.user?.user_id) {
+        return res.status(401).json({ error: "인증이 필요합니다." });
+      }
+
+      const inviteLink = await this.groupService.createInviteLink(
+        parseInt(groupId),
+        req.user.user_id
+      );
+
+      res.json({ inviteLink });
+    } catch (error) {
+      console.error("초대 링크 생성 에러:", error);
+      res.status(500).json({ error: "초대 링크 생성에 실패했습니다." });
+    }
+  };
+
   public getGroupMembers = async (req: AuthRequest, res: Response) => {
     try {
       const { groupId } = req.params;

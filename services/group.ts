@@ -65,6 +65,41 @@ class GroupService {
     return groups[0] as GroupDetails;
   }
 
+  public async createInviteLink(
+    groupId: number,
+    userId: number
+  ): Promise<string> {
+    const connection = await this.db.getConnection();
+    try {
+      await connection.beginTransaction();
+      // HOST 권한 확인
+      const [members] = await connection.query<RowDataPacket[]>(
+        "SELECT role FROM group_member_tb WHERE group_id = ? AND user_id = ?",
+        [groupId, userId]
+      );
+      if (members.length === 0 || members[0].role !== "HOST") {
+        throw new Error("초대 권한이 없습니다.");
+      }
+      // 24시간 유효한 초대 링크 생성
+      const expiredDate = new Date();
+      expiredDate.setHours(expiredDate.getHours() + 24);
+
+      const [result] = await connection.query<ResultSetHeader>(
+        "INSERT INTO group_invite_tb (group_id, created_by, expired_date) VALUES (?, ?, ?)",
+        [groupId, userId, expiredDate]
+      );
+
+      await connection.commit();
+
+      return `/group/join/${groupId}`;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
   public async getGroupMembers(groupId: number): Promise<GroupMember[]> {
     const [members] = await this.db.query<RowDataPacket[]>(
       `SELECT u.user_id, u.nickname, u.profileImage, gm.role
