@@ -28,10 +28,10 @@ class KakaoService {
       const user = await this.findOrCreateUser(kakaoUser);
 
       // 4. JWT 토큰 생성
-      const tokens = this.generateUserTokens(kakaoUser.userId);
+      const tokens = this.generateUserTokens(user.user_id);
       return {
         user: {
-          id: user.id,
+          id: user.user_id,
           nickname: user.nickname,
           profileImage: user.profileImage,
         },
@@ -127,18 +127,16 @@ class KakaoService {
     }
   }
 
-  private generateUserTokens(kakaoId: string) {
+  private generateUserTokens(userId: string) {
     return {
-      accessToken: generateToken({ id: kakaoId }),
-      refreshToken: generateRefreshToken({
-        id: kakaoId,
-      }),
+      accessToken: generateToken({ user_id: userId }),
+      refreshToken: generateRefreshToken({ user_id: userId }),
     };
   }
   public async getUserProfile(userId: number) {
     try {
       const [users] = await this.db.query<RowDataPacket[]>(
-        "SELECT id, nickname,  profileImage FROM user_tb WHERE id = ?",
+        "SELECT user_id, nickname,  profileImage FROM user_tb WHERE user_id = ?",
         [userId]
       );
 
