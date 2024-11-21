@@ -14,17 +14,18 @@ class TripService {
 
   public async createTrip(
     groupId: number,
-    startDate: string,
-    endDate: string,
-    destination: string,
-    locations: Array<{
+    date: string,
+    days: Array<{
       day: number;
-      name: string;
-      address: string;
-      visitTime: string;
-      category: string;
-      hashtag: string;
-      thumbnail: string;
+      destination: string;
+      locations: Array<{
+        name: string;
+        address: string;
+        visitTime: string;
+        category: string;
+        hashtag: string;
+        thumbnail: string;
+      }>;
     }>
   ): Promise<TripDetails> {
     const connection = await this.db.getConnection();
@@ -33,35 +34,33 @@ class TripService {
 
       // Trip 생성
       const [tripResult] = await connection.query<ResultSetHeader>(
-        "INSERT INTO trip_tb (group_id, start_date, end_date, destination) VALUES (?, ?, ?, ?)",
-        [groupId, startDate, endDate, destination]
+        "INSERT INTO trip_tb (group_id, date) VALUES (?, ?)",
+        [groupId, date]
       );
       const tripId = tripResult.insertId;
 
       // Locations 추가
-      for (const location of locations) {
-        await connection.query(
-          "INSERT INTO trip_location_tb (trip_id, day, name, address, visit_time, category, hashtag, thumbnail) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-          [
-            tripId,
-            location.day,
-            location.name,
-            location.address,
-            location.visitTime,
-            location.category,
-            location.hashtag,
-            location.thumbnail,
-          ]
-        );
+      for (const day of days) {
+        for (const location of day.locations) {
+          await connection.query(
+            "INSERT INTO trip_location_tb (trip_id, day, destination, name, address, visit_time, category, hashtag, thumbnail) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+              tripId,
+              day.day,
+              day.destination,
+              location.name,
+              location.address,
+              location.visitTime,
+              location.category,
+              location.hashtag,
+              location.thumbnail,
+            ]
+          );
+        }
       }
-
       await connection.commit();
       return {
         trip_id: tripId,
-        group_id: groupId,
-        start_date: startDate,
-        end_date: endDate,
-        destination,
       } as TripDetails;
     } catch (error) {
       await connection.rollback();
@@ -71,12 +70,23 @@ class TripService {
     }
   }
 
-  public async getTripDetails(tripId: number): Promise<TripWithMembers> {
+  public async getTripDetails(tripId: number): Promise<{
+    trip_id: number;
+    group_id: number;
+    date: string;
+    groupName: string;
+    groupThumbnail: string;
+    days: Array<{
+      day: number;
+      destination: string;
+      locations: TripLocationDetails[];
+    }>;
+  }> {
     const connection = await this.db.getConnection();
     try {
       // Trip 정보 조회
       const [trips] = await connection.query<RowDataPacket[]>(
-        `SELECT t.*, g.name as group_name 
+        `SELECT t.*, g.name as group_name, g.group_thumbnail 
          FROM trip_tb t
          JOIN group_tb g ON t.group_id = g.group_id
          WHERE t.trip_id = ?`,
@@ -87,41 +97,63 @@ class TripService {
         throw new Error("존재하지 않는 여행입니다.");
       }
 
-      // Trip Locations 조회
-      const [locations] = await connection.query<RowDataPacket[]>(
+      // Trip Locations 조회 (day별로 그룹화)
+      const [rawLocations] = await connection.query<RowDataPacket[]>(
         `SELECT * FROM trip_location_tb 
          WHERE trip_id = ? 
          ORDER BY day, visit_time`,
         [tripId]
       );
 
-      // Trip에 참여한 멤버 조회 (nickname 포함)
-      const [members] = await connection.query<RowDataPacket[]>(
-        `SELECT u.user_id, u.nickname, u.profileImage, gm.role
-         FROM group_member_tb gm
-         JOIN user_tb u ON gm.user_id = u.user_id
-         WHERE gm.group_id = ?
-         ORDER BY gm.role = 'HOST' DESC, gm.joined_date ASC`,
-        [trips[0].group_id]
-      );
+      // locations를 days 구조로 변환
+      const daysMap = new Map<
+        number,
+        {
+          day: number;
+          destination: string;
+          locations: TripLocationDetails[];
+        }
+      >();
+
+      rawLocations.forEach((location) => {
+        if (!daysMap.has(location.day)) {
+          daysMap.set(location.day, {
+            day: location.day,
+            destination: location.destination || "",
+            locations: [],
+          });
+        }
+
+        // 명시적 타입 변환
+        const typedLocation: TripLocationDetails = {
+          location_id: location.location_id,
+          trip_id: location.trip_id,
+          day: location.day,
+          name: location.name,
+          address: location.address,
+          visit_time: location.visit_time,
+          category: location.category,
+          hashtag: location.hashtag,
+          thumbnail: location.thumbnail,
+        };
+
+        daysMap.get(location.day)!.locations.push(typedLocation);
+      });
 
       return {
-        ...trips[0],
-        locations: locations as TripLocationDetails[],
-        members: members.map((member) => ({
-          user_id: member.user_id,
-          nickname: member.nickname,
-          profileImage: member.profileImage,
-          role: member.role,
-        })),
-      } as TripWithMembers;
+        trip_id: trips[0].trip_id,
+        group_id: trips[0].group_id,
+        date: trips[0].date,
+        groupName: trips[0].group_name,
+        groupThumbnail: trips[0].group_thumbnail,
+        days: Array.from(daysMap.values()),
+      };
     } catch (error) {
       throw error;
     } finally {
       connection.release();
     }
   }
-
   public async getGroupTrips(groupId: number): Promise<TripDetails[]> {
     const [trips] = await this.db.query<RowDataPacket[]>(
       "SELECT * FROM trip_tb WHERE group_id = ? ORDER BY start_date DESC",

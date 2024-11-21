@@ -20,17 +20,12 @@ class TripController {
       if (!req.user?.user_id) {
         return res.status(401).json({ error: "인증이 필요합니다." });
       }
-      const { groupId, startDate, endDate, destination, locations } = req.body;
+      const { groupId, date, days } = req.body;
+      console.log(date);
 
-      const trip = await this.tripService.createTrip(
-        groupId,
-        startDate,
-        endDate,
-        destination,
-        locations
-      );
+      const trip = await this.tripService.createTrip(groupId, date, days);
 
-      res.status(201).json(trip);
+      res.status(201).json({ message: "성공적으로 저장되었습니다", trip });
     } catch (error) {
       console.error("여행 생성 에러:", error);
       res.status(500).json({ error: "여행 생성에 실패했습니다." });

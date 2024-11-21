@@ -1,9 +1,7 @@
 export interface TripDetails {
   trip_id: number;
   group_id: number;
-  start_date: string;
-  end_date: string;
-  destination: string;
+  date: string;
   created_date?: string;
   updated_date?: string;
 }
