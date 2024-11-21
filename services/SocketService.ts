@@ -218,6 +218,10 @@ export class SocketService {
               userId,
               message: "멤버가 그룹을 나갔습니다.",
             });
+            this.io.to(`group:${groupId}`).emit("calendarDateCleared", {
+              groupId,
+              userId,
+            });
           }
 
           await connection.commit();
