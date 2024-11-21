@@ -34,7 +34,7 @@ export class SocketService {
       this.handleJoinGroup(socket);
       this.handleLeaveGroup(socket);
       this.handleGetMembers(socket);
-      this.handleDeleteGroup(socket);
+
       this.handleDisconnect(socket);
     });
   }
@@ -160,15 +160,59 @@ export class SocketService {
         try {
           await connection.beginTransaction();
 
-          await this.trackUserConnection(groupId, userId, false);
-          socket.leave(`group:${groupId}`);
-
-          const [result] = await connection.query<any>(
-            'DELETE FROM group_member_tb WHERE group_id = ? AND user_id = ? AND role != "HOST"',
+          // 1. 사용자의 역할 확인
+          const [userRoleResult] = await connection.query<GroupMember[]>(
+            "SELECT role FROM group_member_tb WHERE group_id = ? AND user_id = ?",
             [groupId, userId]
           );
 
-          if (result.affectedRows > 0) {
+          const isHost = userRoleResult[0]?.role === "HOST";
+
+          // 2. 트래킹 정보 업데이트
+          await this.trackUserConnection(groupId, userId, false);
+          socket.leave(`group:${groupId}`);
+
+          if (isHost) {
+            // 호스트가 나가는 경우 - 전체 그룹 삭제
+            await connection.query(
+              "DELETE FROM group_invite_tb WHERE group_id = ?",
+              [groupId]
+            );
+
+            await connection.query(
+              "DELETE FROM group_calendar_tb WHERE group_id = ?",
+              [groupId]
+            );
+
+            await connection.query(
+              "DELETE FROM group_member_tb WHERE group_id = ?",
+              [groupId]
+            );
+
+            await connection.query("DELETE FROM group_tb WHERE group_id = ?", [
+              groupId,
+            ]);
+
+            // 그룹 삭제 이벤트 브로드캐스트
+            this.io.to(`group:${groupId}`).emit("groupDeleted", {
+              groupId,
+              message: "호스트가 나가서 그룹이 삭제되었습니다.",
+            });
+          } else {
+            // 일반 멤버가 나가는 경우 - 자신의 모든 관련 정보 삭제
+            // group_member_tb에서 삭제
+            await connection.query(
+              "DELETE FROM group_member_tb WHERE group_id = ? AND user_id = ?",
+              [groupId, userId]
+            );
+
+            // group_calendar_tb에서 삭제
+            await connection.query(
+              "DELETE FROM group_calendar_tb WHERE group_id = ? AND user_id = ?",
+              [groupId, userId]
+            );
+
+            // 멤버 나감 이벤트 브로드캐스트
             this.io.to(`group:${groupId}`).emit("memberLeft", {
               groupId,
               userId,
@@ -181,78 +225,6 @@ export class SocketService {
           await connection.rollback();
           socket.emit("error", {
             message: error.message || "그룹 나가기 중 오류가 발생했습니다.",
-          });
-        } finally {
-          connection.release();
-        }
-      }
-    );
-  }
-  private handleDeleteGroup(socket: Socket): void {
-    socket.on(
-      "deleteGroup",
-      async (data: { groupId: string; userId: string }) => {
-        const { groupId, userId } = data;
-        const connection = await this.pool.getConnection();
-
-        try {
-          await connection.beginTransaction();
-
-          // 1. Check if user is HOST
-          const [userRole] = await connection.query<GroupMember[]>(
-            "SELECT role FROM group_member_tb WHERE group_id = ? AND user_id = ?",
-            [groupId, userId]
-          );
-
-          if (userRole[0]?.role !== "HOST") {
-            throw new Error("그룹 삭제 권한이 없습니다.");
-          }
-
-          // 2. Delete records from related tables in correct order
-          // First delete from group_invite_tb
-          await connection.query(
-            "DELETE FROM group_invite_tb WHERE group_id = ?",
-            [groupId]
-          );
-
-          // Delete from group_calendar_tb
-          await connection.query(
-            "DELETE FROM group_calendar_tb WHERE group_id = ?",
-            [groupId]
-          );
-
-          // Delete from group_member_tb
-          await connection.query(
-            "DELETE FROM group_member_tb WHERE group_id = ?",
-            [groupId]
-          );
-
-          // Finally delete from group_tb
-          await connection.query("DELETE FROM group_tb WHERE group_id = ?", [
-            groupId,
-          ]);
-
-          await connection.commit();
-
-          // Notify all members in the group
-          this.io.to(`group:${groupId}`).emit("groupDeleted", {
-            groupId,
-            message: "그룹이 삭제되었습니다.",
-          });
-
-          // Disconnect all sockets in the group room
-          const room = this.io.sockets.adapter.rooms.get(`group:${groupId}`);
-          if (room) {
-            room.forEach((socketId) => {
-              const clientSocket = this.io.sockets.sockets.get(socketId);
-              clientSocket?.leave(`group:${groupId}`);
-            });
-          }
-        } catch (error: any) {
-          await connection.rollback();
-          console.error("Error in deleteGroup:", error);
-          socket.emit("error", {
-            message: error.message || "그룹 삭제 중 오류가 발생했습니다.",
           });
         } finally {
           connection.release();
