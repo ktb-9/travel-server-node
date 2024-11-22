@@ -1,0 +1,26 @@
+# Ignore node modules
+node_modules
+
+# Ignore logs
+npm-debug.log
+npm-error.log
+
+# Ignore the Git repository and its logs
+.git
+.gitignore
+.gitattributes
+
+# Ignore Docker files (optional)
+Dockerfile
+.dockerignore
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore other unnecessary files
+README.md
+LICENSE
+.DS_Store
+*.md
+.idea
