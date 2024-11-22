@@ -1,0 +1,21 @@
+# Global 설정
+global:
+  imagePullPolicy: Always
+
+# Server 서비스 설정
+server:
+  replicaCount: 1
+  image:
+    repository: ktb9/travel-server-node
+    tag: 5
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+  config:
+    environment: "production"
+    rdsHost: "ktb9-rds-instance.cpumy2eao5qo.ap-northeast-2.rds.amazonaws.com"
+    rdsPort: "3306"
+    rdsName: "ktb9db"
+    redirectUri: "http://healthkungya.s3-website.ap-northeast-2.amazonaws.com/oauth/kakao/callback"
+  enableSwagger: "false" # Swagger 활성화 여부 (true/false)

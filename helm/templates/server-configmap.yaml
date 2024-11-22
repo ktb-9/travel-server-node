@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: server-config
+  labels:
+    app: travel-server
+data:
+  NODE_ENV: "{{ .Values.server.config.environment }}"
+  DB_HOST: "{{ .Values.server.config.rdsHost }}"
+  DB_PORT: "{{ .Values.server.config.rdsPort }}"
+  DB_NAME: "{{ .Values.server.config.rdsName }}"
+  REDIRECT_URI: "{{ .Values.server.config.redirectUri }}"
