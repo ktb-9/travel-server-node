@@ -7,7 +7,7 @@ const tripController = new TripController();
 
 // 여행 생성
 router.post("/", verifyTokenMiddleware, tripController.createTrip);
-
+router.get("/mytrip", verifyTokenMiddleware, tripController.getMyGroupTrips);
 // 여행 상세 조회
 router.get("/:tripId", verifyTokenMiddleware, tripController.getTripDetails);
 

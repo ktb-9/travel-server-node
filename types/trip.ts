@@ -1,6 +1,8 @@
 export interface TripDetails {
   trip_id: number;
   group_id: number;
+  groupName: string;
+  groupThumbnail: string;
   date: string;
   created_date?: string;
   updated_date?: string;
@@ -28,4 +30,9 @@ export interface TripWithMembers extends TripDetails {
     profileImage?: string;
     role: string;
   }>;
+}
+export interface TripInfo {
+  trip_id: number;
+  date: string; // "2024.11.05~2024.11.08" 형식
+  group_name: string;
 }

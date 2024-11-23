@@ -20,10 +20,16 @@ class TripController {
       if (!req.user?.user_id) {
         return res.status(401).json({ error: "인증이 필요합니다." });
       }
-      const { groupId, date, days } = req.body;
+      const { groupId, groupName, groupThumbnail, date, days } = req.body;
       console.log(date);
 
-      const trip = await this.tripService.createTrip(groupId, date, days);
+      const trip = await this.tripService.createTrip(
+        groupId,
+        groupName,
+        groupThumbnail,
+        date,
+        days
+      );
 
       res.status(201).json({ message: "성공적으로 저장되었습니다", trip });
     } catch (error) {
@@ -45,6 +51,19 @@ class TripController {
     } catch (error) {
       console.error("여행 조회 에러:", error);
       res.status(500).json({ error: "여행 조회에 실패 했습니다." });
+    }
+  };
+
+  public getMyGroupTrips = async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.user_id) {
+        return res.status(401).json({ error: "인증이 필요합니다." });
+      }
+      const myGroupTrip = await this.tripService.getUserTrips(req.user.user_id);
+      res.json(myGroupTrip);
+    } catch (error) {
+      console.error("나의 여행 그룹 조회 에러", error);
+      res.status(500).json({ error: "나의 여행 그룹 조회에 실패 했습니다." });
     }
   };
 }

@@ -1,6 +1,7 @@
 import { Pool, RowDataPacket, ResultSetHeader } from "mysql2/promise";
 import {
   TripDetails,
+  TripInfo,
   TripLocationDetails,
   TripWithMembers,
 } from "../types/trip";
@@ -14,6 +15,8 @@ class TripService {
 
   public async createTrip(
     groupId: number,
+    groupName: string,
+    groupThumbnail: string,
     date: string,
     days: Array<{
       day: number;
@@ -32,6 +35,10 @@ class TripService {
     try {
       await connection.beginTransaction();
 
+      await connection.query(
+        "UPDATE group_tb SET name = ?, group_thumbnail = ? WHERE group_id = ?",
+        [groupName, groupThumbnail, groupId]
+      );
       // Trip 생성
       const [tripResult] = await connection.query<ResultSetHeader>(
         "INSERT INTO trip_tb (group_id, date) VALUES (?, ?)",
@@ -154,13 +161,38 @@ class TripService {
       connection.release();
     }
   }
-  public async getGroupTrips(groupId: number): Promise<TripDetails[]> {
-    const [trips] = await this.db.query<RowDataPacket[]>(
-      "SELECT * FROM trip_tb WHERE group_id = ? ORDER BY start_date DESC",
-      [groupId]
-    );
+  public async getUserTrips(user_id: number): Promise<TripInfo[]> {
+    try {
+      const [trips] = await this.db.query<RowDataPacket[]>(
+        `
+            SELECT DISTINCT
+                t.trip_id,
+                t.date,
+                t.created_date,
+                g.name as group_name
+            FROM 
+                trip_tb t
+            JOIN 
+                group_tb g ON t.group_id = g.group_id
+            JOIN 
+                group_member_tb gm ON g.group_id = gm.group_id
+            WHERE 
+                gm.user_id = ?
+            ORDER BY 
+                t.created_date DESC
+            `,
+        [user_id]
+      );
 
-    return trips as TripDetails[];
+      if (!Array.isArray(trips)) {
+        return [];
+      }
+
+      return trips as TripInfo[];
+    } catch (error: any) {
+      console.error("Error fetching user trips:", error);
+      throw new Error(`Failed to fetch user trips: ${error.message}`);
+    }
   }
 }
 
