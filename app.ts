@@ -4,6 +4,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import kakaoRouter from "./router/kakao";
 import groupRouter from "./router/group";
+import tripRouter from "./router/trip";
 import { Pool, createPool } from "mysql2/promise";
 import { SocketService } from "./services/SocketService";
 import dbConfig from "./config/db.config";
@@ -48,6 +49,7 @@ app.set("port", process.env.PORT || 8000);
 
 app.use("/auth", kakaoRouter);
 app.use("/group", groupRouter);
+app.use("/trip", tripRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // Socket.IO 서비스 초기화
