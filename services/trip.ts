@@ -4,6 +4,7 @@ import {
   TripInfo,
   TripLocationDetails,
   TripWithMembers,
+  UpdateLocationRequest,
 } from "../types/trip";
 
 class TripService {
@@ -192,6 +193,64 @@ class TripService {
     } catch (error: any) {
       console.error("Error fetching user trips:", error);
       throw new Error(`Failed to fetch user trips: ${error.message}`);
+    }
+  }
+
+  public async updateTripLocation(
+    userId: number,
+    groupId: number,
+    body: UpdateLocationRequest
+  ): Promise<void> {
+    const connection = await this.db.getConnection();
+    try {
+      await connection.beginTransaction();
+      // 1. 사용자가 그룹의 멤버인지 확인
+      const [memberCheck] = await connection.query<RowDataPacket[]>(
+        `SELECT COUNT(*) as count 
+        FROM group_member_tb 
+        WHERE group_id = ? AND user_id = ?`,
+        [groupId, userId]
+      );
+      if (memberCheck[0].count === 0) throw new Error("그룹의 멤버가 아닙니다");
+      // 2. 장소 정보가 존재하는지 확인
+      const [locationCheck] = await connection.query<RowDataPacket[]>(
+        `SELECT trip_id 
+         FROM trip_location_tb 
+         WHERE location_id = ?`,
+        [body.locationId]
+      );
+
+      if (locationCheck.length === 0) {
+        throw new Error("존재하지 않는 장소입니다.");
+      }
+      // 3. 장소 정보 업데이트
+      await connection.query(
+        `UPDATE trip_location_tb 
+           SET 
+             name = ?,
+             address = ?,
+             category = ?,
+             hashtag = ?,
+             thumbnail = ?,
+             visit_time = ?
+           WHERE location_id = ?`,
+        [
+          body.name,
+          body.address,
+          body.category,
+          body.hashtag,
+          body.thumbnail,
+          body.visit_time,
+          body.locationId,
+        ]
+      );
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
     }
   }
 }

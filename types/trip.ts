@@ -36,3 +36,13 @@ export interface TripInfo {
   date: string; // "2024.11.05~2024.11.08" 형식
   group_name: string;
 }
+
+export interface UpdateLocationRequest {
+  locationId: number;
+  name: string;
+  address: string;
+  category: string;
+  hashtag: string;
+  thumbnail: string;
+  visit_time: string;
+}
