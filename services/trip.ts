@@ -204,7 +204,6 @@ class TripService {
     const connection = await this.db.getConnection();
     try {
       await connection.beginTransaction();
-      console.log(body);
       // 1. 사용자가 그룹의 멤버인지 확인
       const [memberCheck] = await connection.query<RowDataPacket[]>(
         `SELECT COUNT(*) as count 
@@ -220,7 +219,6 @@ class TripService {
          WHERE location_id = ?`,
         [body.location_id]
       );
-      console.log(locationCheck);
 
       if (locationCheck.length === 0) {
         throw new Error("존재하지 않는 장소입니다.");
@@ -247,6 +245,33 @@ class TripService {
         ]
       );
 
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+  public async deleteTripLocation(location_id: number): Promise<void> {
+    const connection = await this.db.getConnection();
+    try {
+      await connection.beginTransaction();
+      // 1. 장소 정보가 존재하는지 확인
+      const [locationCheck] = await connection.query<RowDataPacket[]>(
+        `SELECT trip_id 
+         FROM trip_location_tb 
+         WHERE location_id = ?`,
+        [location_id]
+      );
+
+      if (locationCheck.length === 0) {
+        throw new Error("존재하지 않는 장소입니다.");
+      }
+      await connection.query(
+        `DELETE FROM trip_location_tb WHERE location_id=?`,
+        [location_id]
+      );
       await connection.commit();
     } catch (error) {
       await connection.rollback();
