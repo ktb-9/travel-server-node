@@ -204,6 +204,7 @@ class TripService {
     const connection = await this.db.getConnection();
     try {
       await connection.beginTransaction();
+      console.log(body);
       // 1. 사용자가 그룹의 멤버인지 확인
       const [memberCheck] = await connection.query<RowDataPacket[]>(
         `SELECT COUNT(*) as count 
@@ -217,8 +218,9 @@ class TripService {
         `SELECT trip_id 
          FROM trip_location_tb 
          WHERE location_id = ?`,
-        [body.locationId]
+        [body.location_id]
       );
+      console.log(locationCheck);
 
       if (locationCheck.length === 0) {
         throw new Error("존재하지 않는 장소입니다.");
@@ -241,7 +243,7 @@ class TripService {
           body.hashtag,
           body.thumbnail,
           body.visit_time,
-          body.locationId,
+          body.location_id,
         ]
       );
 

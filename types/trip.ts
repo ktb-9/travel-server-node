@@ -38,7 +38,7 @@ export interface TripInfo {
 }
 
 export interface UpdateLocationRequest {
-  locationId: number;
+  location_id: number;
   name: string;
   address: string;
   category: string;

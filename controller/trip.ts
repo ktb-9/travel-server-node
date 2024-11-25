@@ -66,5 +66,22 @@ class TripController {
       res.status(500).json({ error: "나의 여행 그룹 조회에 실패 했습니다." });
     }
   };
+  public updateTropLocation = async (req: AuthRequest, res: Response) => {
+    try {
+      const { groupId } = req.params;
+      if (!req.user?.user_id) {
+        return res.status(401).json({ error: "인증이 필요합니다." });
+      }
+      await this.tripService.updateTripLocation(
+        req.user.user_id,
+        parseInt(groupId),
+        req.body
+      );
+      res.json({ message: "성공적을 수정 했습니다." });
+    } catch (error) {
+      console.error("여행 장소 수정 에러", error);
+      res.status(500).json({ error: "여행 장소 수정에 실패 했습니다." });
+    }
+  };
 }
 export default TripController;
