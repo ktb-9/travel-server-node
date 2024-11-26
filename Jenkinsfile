@@ -39,7 +39,7 @@ pipeline {
                         sed -i "s/tag:.*/tag: ${IMAGE_TAG}/g" helm/values.yaml
                         git add helm/values.yaml
                         git commit -m "Chore: update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
-                        git push https://${GIT_USER}:${GIT_PASS}github.com/ktb-9/travel-server-node.git infra
+                        git push https://${GIT_USER}:${GIT_PASS}@github.com/ktb-9/travel-server-node.git infra
                         '''
                     }
                 }
