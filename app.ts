@@ -10,8 +10,12 @@ import { SocketService } from "./services/SocketService";
 import dbConfig from "./config/db.config";
 import { CalendarSocketService } from "./services/calendarServices";
 const cors = require("cors");
-const { swaggerUi, specs } = require("./module/swagger");
-require("dotenv").config();
+// const { swaggerUi, specs } = require("./module/swagger");
+
+// 로컬 .env 파일 로드
+if (process.env.NODE_ENV !== "production") {
+    require("dotenv").config();
+}
 
 const app = express();
 const httpServer = createServer(app);
@@ -50,7 +54,7 @@ app.set("port", process.env.PORT || 8000);
 app.use("/auth", kakaoRouter);
 app.use("/group", groupRouter);
 app.use("/trip", tripRouter);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // Socket.IO 서비스 초기화
 const socketService = new SocketService(io, pool);
