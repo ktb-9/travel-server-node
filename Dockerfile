@@ -20,4 +20,4 @@ EXPOSE 8000
 ENV NODE_ENV=production
 
 # Step 8: Start the application
-CMD ["npm", "start"]
+CMD ["node", "./src/app.js"]
