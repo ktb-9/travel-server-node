@@ -9,6 +9,7 @@ spec:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
+  revisionHistoryLimit: 3 # 최근 3개의 버전만 유지하기
   selector:
     matchLabels:
       app: server
