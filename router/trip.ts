@@ -7,6 +7,7 @@ const tripController = new TripController();
 
 // 여행 생성
 router.post("/", verifyTokenMiddleware, tripController.createTrip);
+router.post("/location", verifyTokenMiddleware, tripController.addLocation);
 router.get("/mytrip", verifyTokenMiddleware, tripController.getMyGroupTrips);
 // 여행 상세 조회
 router.get("/:tripId", verifyTokenMiddleware, tripController.getTripDetails);
@@ -14,6 +15,11 @@ router.put(
   "/:groupId",
   verifyTokenMiddleware,
   tripController.updateTropLocation
+);
+router.delete(
+  "/:locationId",
+  verifyTokenMiddleware,
+  tripController.deleteTripLocation
 );
 
 export default router;

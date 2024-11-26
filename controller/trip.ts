@@ -20,21 +20,32 @@ class TripController {
       if (!req.user?.user_id) {
         return res.status(401).json({ error: "인증이 필요합니다." });
       }
-      const { groupId, groupName, groupThumbnail, date, days } = req.body;
+      const { groupId, groupName, groupThumbnail, date } = req.body;
       console.log(date);
 
       const trip = await this.tripService.createTrip(
         groupId,
         groupName,
         groupThumbnail,
-        date,
-        days
+        date
       );
 
       res.status(201).json({ message: "성공적으로 저장되었습니다", trip });
     } catch (error) {
       console.error("여행 생성 에러:", error);
       res.status(500).json({ error: "여행 생성에 실패했습니다." });
+    }
+  };
+  public addLocation = async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.user_id) {
+        return res.status(401).json({ error: "인증이 필요합니다." });
+      }
+      await this.tripService.addLocation(req.body);
+      res.status(201).json({ message: "성공적으로 저장되었습니다" });
+    } catch (error) {
+      console.error("여행 장소 추가 에러:", error);
+      res.status(500).json({ error: "여행 장소 추가에 실패했습니다." });
     }
   };
 
@@ -86,11 +97,11 @@ class TripController {
 
   public deleteTripLocation = async (req: AuthRequest, res: Response) => {
     try {
-      const { location_id } = req.params;
+      const { locationId } = req.params;
       if (!req.user?.user_id) {
         return res.status(401).json({ error: "인증이 필요합니다." });
       }
-      await this.tripService.deleteTripLocation(parseInt(location_id));
+      await this.tripService.deleteTripLocation(parseInt(locationId));
       res.json({ message: "성공적으로 삭제 했습니다." });
     } catch (error) {
       console.error("여행 장소 삭제 에러", error);

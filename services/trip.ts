@@ -18,19 +18,7 @@ class TripService {
     groupId: number,
     groupName: string,
     groupThumbnail: string,
-    date: string,
-    days: Array<{
-      day: number;
-      destination: string;
-      locations: Array<{
-        name: string;
-        address: string;
-        visitTime: string;
-        category: string;
-        hashtag: string;
-        thumbnail: string;
-      }>;
-    }>
+    date: string
   ): Promise<TripDetails> {
     const connection = await this.db.getConnection();
     try {
@@ -46,30 +34,52 @@ class TripService {
         [groupId, date]
       );
       const tripId = tripResult.insertId;
-
-      // Locations 추가
-      for (const day of days) {
-        for (const location of day.locations) {
-          await connection.query(
-            "INSERT INTO trip_location_tb (trip_id, day, destination, name, address, visit_time, category, hashtag, thumbnail) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-              tripId,
-              day.day,
-              day.destination,
-              location.name,
-              location.address,
-              location.visitTime,
-              location.category,
-              location.hashtag,
-              location.thumbnail,
-            ]
-          );
-        }
-      }
       await connection.commit();
       return {
         trip_id: tripId,
       } as TripDetails;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+  public async addLocation(body: {
+    tripId: number;
+    day: number;
+    destination: number;
+    locations: [
+      {
+        name: string;
+        address: string;
+        visit_time: string;
+        category: string;
+        hashtag: string;
+        thumbnail: string;
+      }
+    ];
+  }): Promise<void> {
+    const connection = await this.db.getConnection();
+    try {
+      await connection.beginTransaction();
+      for (const location of body.locations) {
+        await connection.query(
+          "INSERT INTO trip_location_tb (trip_id, day, destination, name, address, visit_time, category, hashtag, thumbnail) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          [
+            body.tripId,
+            body.day,
+            body.destination,
+            location.name,
+            location.address,
+            location.visit_time,
+            location.category,
+            location.hashtag,
+            location.thumbnail,
+          ]
+        );
+      }
+      await connection.commit();
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -257,6 +267,7 @@ class TripService {
     const connection = await this.db.getConnection();
     try {
       await connection.beginTransaction();
+      console.log(location_id);
       // 1. 장소 정보가 존재하는지 확인
       const [locationCheck] = await connection.query<RowDataPacket[]>(
         `SELECT trip_id 
