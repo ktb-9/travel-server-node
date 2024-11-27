@@ -70,7 +70,7 @@ pipeline {
             success {
                 script {
                     withCredentials([string(credentialsId: 'discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
-                        discordNotifier description: """
+                        discordSend description: """
                         ✅ Build Success
                         실행 시간: ${currentBuild.duration / 1000}s
                         커밋 해시: ${env.GIT_COMMIT_HASH}
@@ -87,10 +87,8 @@ pipeline {
             failure {
                 script {
                     withCredentials([string(credentialsId: 'discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
-                        def failedStage = currentBuild.rawBuild.getExecution().getCurrentHeads().find { it.error }.displayName
-                        discordNotifier description: """
+                        discordSend description: """
                         ❌ Build Failed
-                        실패한 스테이지: ${failedStage}
                         실행 시간: ${currentBuild.duration / 1000}s
                         커밋 해시: ${env.GIT_COMMIT_HASH}
                         제목: ${currentBuild.displayName}
