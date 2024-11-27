@@ -10,6 +10,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                script {
+                    env.GIT_COMMIT_HASH = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                }
                 git branch: 'dev', url: 'https://github.com/ktb-9/travel-server-node.git'
             }
         }
@@ -46,7 +49,6 @@ pipeline {
             }
         }
 
-
         stage('ArgoCD Sync') {
             steps {
                 script {
@@ -62,8 +64,44 @@ pipeline {
     }
 
     post {
-        always {
-            cleanWs()
+            always {
+                cleanWs()
+            }
+            success {
+                script {
+                    withCredentials([string(credentialsId: 'discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
+                        discordNotifier description: """
+                        ✅ Build Success
+                        실행 시간: ${currentBuild.duration / 1000}s
+                        커밋 해시: ${env.GIT_COMMIT_HASH}
+                        제목: ${currentBuild.displayName}
+                        결과: ${currentBuild.result}
+                        """,
+                        link: env.BUILD_URL,
+                        result: currentBuild.result,
+                        title: "${env.JOB_NAME}: ${currentBuild.displayName} 성공",
+                        webhookURL: "$DISCORD_WEBHOOK"
+                    }
+                }
+            }
+            failure {
+                script {
+                    withCredentials([string(credentialsId: 'discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
+                        def failedStage = currentBuild.rawBuild.getExecution().getCurrentHeads().find { it.error }.displayName
+                        discordNotifier description: """
+                        ❌ Build Failed
+                        실패한 스테이지: ${failedStage}
+                        실행 시간: ${currentBuild.duration / 1000}s
+                        커밋 해시: ${env.GIT_COMMIT_HASH}
+                        제목: ${currentBuild.displayName}
+                        결과: ${currentBuild.result}
+                        """,
+                        link: env.BUILD_URL,
+                        result: currentBuild.result,
+                        title: "${env.JOB_NAME}: ${currentBuild.displayName} 실패",
+                        webhookURL: "$DISCORD_WEBHOOK"
+                    }
+                }
+            }
         }
     }
-}
