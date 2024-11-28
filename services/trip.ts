@@ -3,7 +3,6 @@ import {
   TripDetails,
   TripInfo,
   TripLocationDetails,
-  TripWithMembers,
   UpdateLocationRequest,
 } from "../types/trip";
 
