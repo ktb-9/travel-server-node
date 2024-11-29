@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 import kakaoRouter from "./router/kakao";
 import groupRouter from "./router/group";
 import tripRouter from "./router/trip";
+import paymentRouter from "./router/payment";
 import { Pool, createPool } from "mysql2/promise";
 import { SocketService } from "./services/SocketService";
 import dbConfig from "./config/db.config";
@@ -14,7 +15,7 @@ const cors = require("cors");
 
 // 로컬 .env 파일 로드
 if (process.env.NODE_ENV !== "production") {
-    require("dotenv").config();
+  require("dotenv").config();
 }
 
 const app = express();
@@ -54,6 +55,7 @@ app.set("port", process.env.PORT || 8000);
 app.use("/auth", kakaoRouter);
 app.use("/group", groupRouter);
 app.use("/trip", tripRouter);
+app.use("/payment", paymentRouter);
 // app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // Socket.IO 서비스 초기화
