@@ -79,5 +79,21 @@ class PaymentController {
       res.status(500).json({ error: "여행 ID로 결제를 위한 정산 조회 실패." });
     }
   };
+
+  public deletePayments = async (req: AuthRequest, res: Response) => {
+    try {
+      const { paymentId } = req.params;
+      if (!req.user?.user_id) {
+        return res.status(401).json({ error: "인증이 필요합니다." });
+      }
+
+      await this.paymentService.deletePayment(parseInt(paymentId));
+
+      res.status(201).json({ message: "성공적으로 삭제 되었습니다." });
+    } catch (error) {
+      console.error("결제를 위한 정산 삭제 에러:", error);
+      res.status(500).json({ error: "결제 ID로 결제를 위한 정산 삭제 실패." });
+    }
+  };
 }
 export default PaymentController;

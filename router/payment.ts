@@ -14,6 +14,11 @@ router.get(
   verifyTokenMiddleware,
   paymentController.getPaymentsByTripId
 );
+router.delete(
+  "/:paymentId",
+  verifyTokenMiddleware,
+  paymentController.deletePayments
+);
 router.get(
   "/members/:tripId",
   verifyTokenMiddleware,
