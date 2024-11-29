@@ -9,6 +9,11 @@ const tripController = new TripController();
 router.post("/", verifyTokenMiddleware, tripController.createTrip);
 router.post("/location", verifyTokenMiddleware, tripController.addLocation);
 router.get("/mytrip", verifyTokenMiddleware, tripController.getMyGroupTrips);
+router.post(
+  "/upload/:locationId",
+  verifyTokenMiddleware,
+  tripController.uploadLocationThumbnail
+);
 // 여행 상세 조회
 router.get("/:tripId", verifyTokenMiddleware, tripController.getTripDetails);
 router.put(

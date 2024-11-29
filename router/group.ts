@@ -7,6 +7,11 @@ const groupController = new GroupController();
 
 // 그룹 생성 및 조회
 router.post("/", verifyTokenMiddleware, groupController.createGroup);
+router.post(
+  "/upload/:groupId",
+  verifyTokenMiddleware,
+  groupController.uploadGroupThumbnail
+);
 router.get("/:groupId", verifyTokenMiddleware, groupController.getGroupDetails);
 
 // 초대 링크 관련
@@ -15,7 +20,6 @@ router.post(
   verifyTokenMiddleware,
   groupController.createInviteLink
 );
-// router.get("/join/:inviteId", verifyTokenMiddleware, groupController.joinGroup);
 
 // 그룹 멤버 관련
 router.get(
