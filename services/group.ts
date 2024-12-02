@@ -64,6 +64,42 @@ class GroupService {
 
     return groups[0] as GroupDetails;
   }
+  public async updateGroup(
+    tripId: number,
+    body: {
+      group_id: number;
+      groupName: string;
+      groupThumbnail: string;
+      date: string;
+    }
+  ): Promise<void> {
+    const connection = await this.db.getConnection();
+    try {
+      // 트랜잭션 시작
+      await connection.beginTransaction();
+      // group_tb 업데이트
+      await connection.query(
+        "UPDATE group_tb SET name = ?, group_thumbnail = ? WHERE group_id = ?",
+        [body.groupName, body.groupThumbnail, body.group_id]
+      );
+
+      // trip_tb 업데이트
+      await connection.query("UPDATE trip_tb SET date = ? WHERE trip_id = ?", [
+        body.date,
+        tripId,
+      ]);
+
+      // 커밋
+      await connection.commit();
+    } catch (error) {
+      // 롤백
+      await connection.rollback();
+      throw error; // 상위 호출부로 에러 전달
+    } finally {
+      // 연결 해제
+      connection.release();
+    }
+  }
 
   public async createInviteLink(
     groupId: number,

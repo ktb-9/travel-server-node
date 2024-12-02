@@ -249,6 +249,7 @@ class TripService {
     trip_id: number;
     group_id: number;
     date: string;
+    backgroundUrl: string;
     groupName: string;
     groupThumbnail: string;
     days: Array<{
@@ -271,6 +272,12 @@ class TripService {
       if (trips.length === 0) {
         throw new Error("존재하지 않는 여행입니다.");
       }
+
+      // Background URLs 조회
+      const [backgrounds] = await connection.query<RowDataPacket[]>(
+        "SELECT background_url FROM group_background_tb WHERE group_id = ?",
+        [trips[0].group_id]
+      );
 
       // Trip Locations 조회 (day별로 그룹화)
       const [rawLocations] = await connection.query<RowDataPacket[]>(
@@ -319,6 +326,8 @@ class TripService {
         trip_id: trips[0].trip_id,
         group_id: trips[0].group_id,
         date: trips[0].date,
+        backgroundUrl:
+          backgrounds.length > 0 ? backgrounds[0].background_url : "", // 단일 배경 URL 반환
         groupName: trips[0].group_name,
         groupThumbnail: trips[0].group_thumbnail,
         days: Array.from(daysMap.values()),
