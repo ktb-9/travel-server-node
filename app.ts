@@ -6,6 +6,7 @@ import kakaoRouter from "./router/kakao";
 import groupRouter from "./router/group";
 import tripRouter from "./router/trip";
 import paymentRouter from "./router/payment";
+import imageRouter from "./router/image";
 import { Pool, createPool } from "mysql2/promise";
 import { SocketService } from "./services/SocketService";
 import dbConfig from "./config/db.config";
@@ -56,6 +57,7 @@ app.use("/auth", kakaoRouter);
 app.use("/group", groupRouter);
 app.use("/trip", tripRouter);
 app.use("/payment", paymentRouter);
+app.use("/image", imageRouter);
 // app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // Socket.IO 서비스 초기화
