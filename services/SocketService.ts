@@ -236,18 +236,10 @@ export class SocketService {
       }
     );
   }
+
   private handleDisconnect(socket: Socket): void {
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
-      socket.rooms.forEach((room) => {
-        if (room.startsWith("group:")) {
-          const groupId = room.split(":")[1];
-          this.io.to(room).emit("userDisconnected", {
-            socketId: socket.id,
-            message: "사용자의 연결이 끊어졌습니다.",
-          });
-        }
-      });
     });
   }
 }
