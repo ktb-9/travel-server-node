@@ -38,6 +38,7 @@ export class CalendarSocketService {
       this.handleGetCalendarDates(socket);
       this.handleClearCalendarDate(socket);
       this.handleDisconnect(socket);
+      this.handleTripCreation(socket);
     });
   }
 
@@ -202,6 +203,20 @@ export class CalendarSocketService {
         } finally {
           connection.release();
         }
+      }
+    );
+  }
+  private handleTripCreation(socket: Socket): void {
+    socket.on(
+      "tripCreated",
+      async (data: { groupId: string; tripId: number }) => {
+        const { groupId, tripId } = data;
+        console.log(tripId);
+        // Broadcast to all members in the group to redirect
+        this.io.to(`group:${groupId}`).emit("redirectToTrip", {
+          tripId: tripId,
+          message: "여행 일정이 확정되었습니다.",
+        });
       }
     );
   }
