@@ -148,5 +148,17 @@ class GroupService {
 
     return members as GroupMember[];
   }
+  public async getPreviousGroup(userId: number): Promise<number[]> {
+    const [groupIds] = await this.db.query<RowDataPacket[]>(
+      `SELECT g.group_id 
+       FROM group_tb g
+       INNER JOIN group_member_tb gm ON g.group_id = gm.group_id
+       WHERE gm.user_id = ? AND g.schedule = false
+       ORDER BY g.created_date DESC`,
+      [userId]
+    );
+
+    return groupIds.map((row) => row.group_id);
+  }
 }
 export default GroupService;

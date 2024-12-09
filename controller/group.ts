@@ -186,5 +186,23 @@ class GroupController {
       }
     });
   };
+
+  public getPreviousGroup = async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.user_id) {
+        return res.status(401).json({ error: "인증이 필요합니다." });
+      }
+
+      const previousGroup = await this.groupService.getPreviousGroup(
+        req.user.user_id
+      );
+      res.status(201).json(previousGroup);
+    } catch (error) {
+      console.error("이전 일정 생성 그룹 조회 에러:", error);
+      res
+        .status(500)
+        .json({ error: "이전 일정 생성 그룹 조회에 실패했습니다." });
+    }
+  };
 }
 export default GroupController;
