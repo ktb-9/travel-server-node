@@ -70,7 +70,8 @@ class PaymentController {
       }
 
       const payments = await this.paymentService.getPaymentsByTripId(
-        parseInt(tripId)
+        parseInt(tripId),
+        req.user.user_id
       );
 
       res.status(201).json(payments);

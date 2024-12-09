@@ -308,7 +308,10 @@ class PaymentService {
   }
 
   // 기존 결제 내역 조회 메서드는 변경 없음
-  public async getPaymentsByTripId(tripId: number): Promise<Payment[]> {
+  public async getPaymentsByTripId(
+    tripId: number,
+    userId: number
+  ): Promise<Payment[]> {
     try {
       const [payments] = await this.db.query<RowDataPacket[]>(
         `
@@ -319,6 +322,10 @@ class PaymentService {
           p.description,
           p.total_price as price,
           p.paid_by as pay,
+          CASE 
+            WHEN p.paid_by = ? THEN 'personal'
+            ELSE 'group'
+          END as payment_type,
           COALESCE(
             (
               SELECT JSON_ARRAYAGG(
@@ -335,10 +342,14 @@ class PaymentService {
           ) as group_members
         FROM 
           payment_tb p
+        LEFT JOIN payment_share_tb ps ON p.payment_id = ps.payment_id
         WHERE 
-          p.trip_id = ?
+          p.trip_id = ? AND 
+          (p.paid_by = ? OR ps.user_id = ?)
+        GROUP BY 
+          p.payment_id
         `,
-        [tripId]
+        [userId, tripId, userId, userId]
       );
 
       return payments.map((payment) => ({
