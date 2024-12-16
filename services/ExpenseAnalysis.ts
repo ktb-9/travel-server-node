@@ -25,6 +25,31 @@ class ExpenseAnalysisService {
     this.db = db;
   }
 
+  public async updateGroupFinish(tripId: number): Promise<void> {
+    try {
+      // 1. tripId로 groupId 조회
+      const [tripResult] = await this.db.query<RowDataPacket[]>(
+        `SELECT group_id FROM trip_tb WHERE trip_id = ?`,
+        [tripId]
+      );
+
+      if (!tripResult || tripResult.length === 0) {
+        throw new Error("해당하는 여행을 찾을 수 없습니다.");
+      }
+
+      const groupId = tripResult[0].group_id;
+
+      // 2. group_tb의 finish 상태 업데이트
+      await this.db.query(
+        `UPDATE group_tb SET finish = true WHERE group_id = ?`,
+        [groupId]
+      );
+    } catch (error) {
+      console.error("그룹 완료 상태 업데이트 중 오류 발생:", error);
+      throw new Error("그룹 완료 상태 업데이트에 실패했습니다.");
+    }
+  }
+
   public async analyzeExpenses(tripId: number): Promise<ExpenseAnalysis> {
     try {
       // 1. 결제 내역 조회
@@ -174,7 +199,8 @@ class ExpenseAnalysisService {
         payments,
         totalExpense
       );
-
+      // 분석이 완료되면 그룹 상태 업데이트
+      await this.updateGroupFinish(tripId);
       return {
         totalExpense: Number(totalExpense.toFixed(0)),
         categoryBreakdown: categoryBreakdown.sort(

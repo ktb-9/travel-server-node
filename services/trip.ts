@@ -87,7 +87,7 @@ class TripService {
 
         // 그룹 정보 순서대로 업데이트 (일관된 락 순서)
         await connection.query(
-          "UPDATE group_tb SET name = ?, group_thumbnail = ? WHERE group_id = ?",
+          "UPDATE group_tb SET name = ?, group_thumbnail = ?, schedule = true WHERE group_id = ?",
           [groupName, groupThumbnail, groupId]
         );
 
