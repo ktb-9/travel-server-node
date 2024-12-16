@@ -212,7 +212,7 @@ export class CalendarSocketService {
       async (data: { groupId: string; tripId: number }) => {
         const { groupId, tripId } = data;
         console.log(tripId);
-        // Broadcast to all members in the group to redirect
+        // 브로드 캐스팅
         this.io.to(`group:${groupId}`).emit("redirectToTrip", {
           tripId: tripId,
           message: "여행 일정이 확정되었습니다.",

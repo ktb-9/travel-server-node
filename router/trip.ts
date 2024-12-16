@@ -9,6 +9,11 @@ const tripController = new TripController();
 router.post("/", verifyTokenMiddleware, tripController.createTrip);
 router.post("/location", verifyTokenMiddleware, tripController.addLocation);
 router.get("/mytrip", verifyTokenMiddleware, tripController.getMyGroupTrips);
+router.get(
+  "/upcomming",
+  verifyTokenMiddleware,
+  tripController.getUpcommingGroup
+);
 router.post(
   "/upload/:locationId",
   verifyTokenMiddleware,

@@ -147,5 +147,20 @@ class TripController {
       }
     });
   };
+  public getUpcommingGroup = async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.user_id) {
+        return res.status(401).json({ error: "인증이 필요합니다." });
+      }
+
+      const UpcommingTrip = await this.tripService.getUpcomingTrip(
+        req.user.user_id
+      );
+      res.status(201).json(UpcommingTrip);
+    } catch (error) {
+      console.error("다가오는 일정 조회 오류:", error);
+      res.status(500).json({ error: "다가오는 일정 조회에 실패했습니다." });
+    }
+  };
 }
 export default TripController;

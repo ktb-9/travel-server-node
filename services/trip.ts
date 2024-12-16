@@ -400,6 +400,42 @@ class TripService {
       connection.release();
     }
   }
+
+  public async getUpcomingTrip(userId: number): Promise<TripInfo[]> {
+    try {
+      const [upcomingTrips] = await this.db.query<RowDataPacket[]>(
+        `
+        SELECT 
+          t.trip_id,
+          t.date,
+          g.name AS group_name,
+          g.group_thumbnail,
+          gb.background_url,
+          STR_TO_DATE(SUBSTRING_INDEX(t.date, '~', 1), '%Y.%m.%d') as start_date
+        FROM 
+          trip_tb t
+        JOIN 
+          group_tb g ON t.group_id = g.group_id
+        JOIN 
+          group_member_tb gm ON g.group_id = gm.group_id
+        LEFT JOIN 
+          group_background_tb gb ON g.group_id = gb.group_id
+        WHERE 
+          gm.user_id = ?
+          AND STR_TO_DATE(SUBSTRING_INDEX(t.date, '~', 1), '%Y.%m.%d') >= CURDATE()
+        ORDER BY 
+          start_date ASC
+        LIMIT 1 
+      `,
+        [userId]
+      );
+
+      return upcomingTrips as TripInfo[];
+    } catch (error: any) {
+      console.error("다가오는 일정 조회 오류:", error);
+      throw new Error(`다가오는 일정 조회에 실패 했습니다.: ${error.message}`);
+    }
+  }
 }
 
 export default TripService;
