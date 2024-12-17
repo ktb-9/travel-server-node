@@ -13,7 +13,7 @@ pipeline {
                 // 현재 커밋 해시 가져오기
                     env.GIT_COMMIT_HASH = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                 }
-                git branch: 'dev', url: 'https://github.com/ktb-9/travel-server-node.git'
+                git branch: 'main', url: 'https://github.com/ktb-9/travel-server-node.git'
             }
         }
 
@@ -66,6 +66,11 @@ pipeline {
     post {
             always {
                 cleanWs() // 작업 후 워크스페이스 정리
+                script {
+                    sh '''
+                    docker system prune -a -f
+                    '''
+                }
             }
             success {
                 script { // 빌드 성공 시 디스코드 알림
