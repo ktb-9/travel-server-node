@@ -8,4 +8,5 @@ const kakaoController = new KakaoController();
 router.get("/kakao/login", kakaoController.redirectToKakaoLogin);
 router.get("/oauth/kakao/callback", kakaoController.handleKakaoCallback);
 router.get("/profile", verifyTokenMiddleware, kakaoController.getProfile);
+router.post("/refresh", kakaoController.refreshToken);
 export default router;

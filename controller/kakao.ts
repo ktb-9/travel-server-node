@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import KakaoService from "../services/kakao";
 import connection from "../db";
+import { generateToken, verifyRefreshToken } from "../authorization/jwt";
 interface DecodedToken {
   user_id: number;
   iat: number;
@@ -60,6 +61,33 @@ class KakaoController {
       res.status(500).json({ error: "Failed to fetch profile" });
     }
   };
+
+  public async refreshToken(req: Request, res: Response): Promise<any> {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(403).json({
+        message: "리프레쉬 토큰이 없습니다.",
+        code: "REFRESH_TOKEN_MISSING",
+      });
+    }
+
+    try {
+      // refreshToken에서 user_id 추출
+      const decoded = verifyRefreshToken(refreshToken);
+      const userId = decoded?.user_id; // refreshToken에서 user_id 가져오기
+
+      // 새로운 액세스 토큰 발급
+      const accessToken = generateToken({ user_id: userId });
+      return res.json({ accessToken });
+    } catch (error) {
+      console.error("Token verification failed:", error);
+      return res.status(403).json({
+        message: "리프레쉬 토큰 검증 실패",
+        code: "TOKEN_VERIFICATION_FAILED",
+      });
+    }
+  }
 }
 
 export default KakaoController;

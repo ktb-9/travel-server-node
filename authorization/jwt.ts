@@ -22,7 +22,7 @@ const secretKey = process.env.JWT_SECRET as string;
 const refreshSecretKey = process.env.JWT_REFRESH_SECRET as string;
 // 토큰 생성 함수
 function generateToken(payload: object): string {
-  return jwt.sign(payload, secretKey, { expiresIn: "1d" });
+  return jwt.sign(payload, secretKey, { expiresIn: "1h" });
 }
 
 // 리프레쉬 토큰 생성 함수
