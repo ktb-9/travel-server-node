@@ -8,6 +8,8 @@ import tripRouter from "./router/trip";
 import paymentRouter from "./router/payment";
 import imageRouter from "./router/image";
 import previousRouter from "./router/previous";
+import expenseAnalysisRouter from "./router/ExpenseAnalysis";
+import historyRouter from "./router/history";
 import { Pool, createPool } from "mysql2/promise";
 import { SocketService } from "./services/SocketService";
 import dbConfig from "./config/db.config";
@@ -60,6 +62,8 @@ app.use("/trip", tripRouter);
 app.use("/payment", paymentRouter);
 app.use("/image", imageRouter);
 app.use("/previous", previousRouter);
+app.use("/analysis", expenseAnalysisRouter);
+app.use("/history", historyRouter);
 // app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // Socket.IO 서비스 초기화

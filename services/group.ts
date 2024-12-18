@@ -127,7 +127,7 @@ class GroupService {
 
       await connection.commit();
 
-      return `/group/join/${groupId}`;
+      return `https://client.zero-dang.com/group/join/${groupId}`;
     } catch (error) {
       await connection.rollback();
       throw error;
