@@ -177,7 +177,6 @@ class TripService {
   ): Promise<void> {
     return this.executeWithRetry(async () => {
       const connection = await this.db.getConnection();
-      console.log("id", userId, groupId);
       try {
         await this.startTransactionWithTimeout(connection);
 
