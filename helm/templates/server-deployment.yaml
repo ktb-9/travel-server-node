@@ -80,6 +80,16 @@ spec:
                 secretKeyRef:
                   name: server-secret
                   key: KAKAO_CLIENT_SECRET
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: server-secret
+                  key: AWS_ACCESS_KEY
+            - name: AWS_SECRETE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: server-secret
+                  key: AWS_SECRETE_ACCESS_KEY
             - name: ENABLE_SWAGGER
               value: "{{ .Values.server.enableSwagger }}"
             - name: PORT
