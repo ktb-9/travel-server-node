@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import TripService from "../services/trip";
 import connection from "../db";
 import TripLocationThumbnailUploader from "../module/TripLocationThumbnailUploader";
+import NewThumbnailUploader from "../module/NewTripLocationThumbnailUploader";
 interface DecodedToken {
   user_id: number;
   iat: number;
@@ -13,9 +14,11 @@ interface AuthRequest extends Request {
 class TripController {
   private tripService: TripService;
   private thumbnailUploader: TripLocationThumbnailUploader;
+  private newThumbnailUploader: NewThumbnailUploader;
   constructor() {
     this.tripService = new TripService(connection);
     this.thumbnailUploader = new TripLocationThumbnailUploader(connection);
+    this.newThumbnailUploader = new NewThumbnailUploader(connection);
   }
 
   public createTrip = async (req: AuthRequest, res: Response) => {
@@ -161,6 +164,32 @@ class TripController {
       console.error("다가오는 일정 조회 오류:", error);
       res.status(500).json({ error: "다가오는 일정 조회에 실패했습니다." });
     }
+  };
+
+  public uploadNewImage = async (req: AuthRequest, res: Response) => {
+    if (!req.user?.user_id) {
+      return res.status(401).json({ error: "인증이 필요합니다." });
+    }
+    const upload =
+      await this.newThumbnailUploader.createThumbnailUploadMiddleware();
+
+    upload.single("thumbnail")(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+
+      try {
+        // Multer-S3가 요청에 추가한 썸네일 URL
+        const thumbnailUrl = (req.file as any).location;
+
+        res.json({
+          message: "썸네일 업로드 성공",
+          thumbnailUrl,
+        });
+      } catch (error) {
+        res.status(500).json({ error: "썸네일 업데이트 실패" });
+      }
+    });
   };
 }
 export default TripController;

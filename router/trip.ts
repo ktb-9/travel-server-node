@@ -14,6 +14,7 @@ router.get(
   verifyTokenMiddleware,
   tripController.getUpcommingGroup
 );
+router.post("/upload", verifyTokenMiddleware, tripController.uploadNewImage);
 router.post(
   "/upload/:locationId",
   verifyTokenMiddleware,
