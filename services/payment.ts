@@ -318,6 +318,7 @@ class PaymentService {
         SELECT 
           p.payment_id,
           p.trip_id,
+          p.date,
           p.category,
           p.description,
           p.total_price as price,
