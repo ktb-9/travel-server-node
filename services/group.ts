@@ -108,14 +108,26 @@ class GroupService {
     const connection = await this.db.getConnection();
     try {
       await connection.beginTransaction();
+
       // HOST 권한 확인
       const [members] = await connection.query<RowDataPacket[]>(
         "SELECT role FROM group_member_tb WHERE group_id = ? AND user_id = ?",
         [groupId, userId]
       );
-      if (members.length === 0 || members[0].role !== "HOST") {
+      if (members.length === 0) {
         throw new Error("초대 권한이 없습니다.");
       }
+
+      // 그룹의 finish 상태 확인
+      const [groupInfo] = await connection.query<RowDataPacket[]>(
+        "SELECT schedule FROM group_tb WHERE group_id = ?",
+        [groupId]
+      );
+
+      if (groupInfo.length === 0) {
+        throw new Error("존재하지 않는 그룹입니다.");
+      }
+
       // 24시간 유효한 초대 링크 생성
       const expiredDate = new Date();
       expiredDate.setHours(expiredDate.getHours() + 24);
@@ -127,7 +139,10 @@ class GroupService {
 
       await connection.commit();
 
-      return `https://client.zero-dang.com/group/join/${groupId}`;
+      // finish 상태에 따라 다른 URL 반환
+      return groupInfo[0].schedule
+        ? `https://client.zero-dang.com/group/join/finish/${groupId}`
+        : `https://client.zero-dang.com/group/join/${groupId}`;
     } catch (error) {
       await connection.rollback();
       throw error;

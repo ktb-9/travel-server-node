@@ -436,6 +436,52 @@ class TripService {
       throw new Error(`다가오는 일정 조회에 실패 했습니다.: ${error.message}`);
     }
   }
+  public async joinExistingGroup(
+    userId: number,
+    groupId: number
+  ): Promise<number> {
+    return this.executeWithRetry(async () => {
+      const connection = await this.db.getConnection();
+      try {
+        await this.startTransactionWithTimeout(connection);
+
+        // 이미 그룹 멤버인지 확인
+        const [memberCheck] = await connection.query<RowDataPacket[]>(
+          "SELECT COUNT(*) as count FROM group_member_tb WHERE group_id = ? AND user_id = ?",
+          [groupId, userId]
+        );
+
+        if (memberCheck[0].count > 0) {
+          throw new Error("이미 그룹에 가입된 사용자입니다.");
+        }
+
+        // 그룹의 trip_id 조회
+        const [tripInfo] = await connection.query<RowDataPacket[]>(
+          "SELECT trip_id FROM trip_tb WHERE group_id = ?",
+          [groupId]
+        );
+
+        if (tripInfo.length === 0) {
+          throw new Error("존재하지 않는 그룹입니다.");
+        }
+
+        // 그룹 멤버로 추가 (COMPANION 역할로)
+        await connection.query(
+          "INSERT INTO group_member_tb (group_id, user_id, role) VALUES (?, ?, 'COMPANION')",
+          [groupId, userId]
+        );
+
+        await connection.commit();
+
+        return tripInfo[0].trip_id;
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+    });
+  }
 }
 
 export default TripService;

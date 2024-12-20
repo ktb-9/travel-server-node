@@ -134,13 +134,14 @@ class PaymentService {
           // 결제 저장
           const [paymentResult] = await connection.query<ResultSetHeader>(
             `INSERT INTO payment_tb 
-              (trip_id, category, description, total_price, paid_by, version) 
-             VALUES (?, ?, ?, ?, ?, 1)`,
+              (trip_id, category, description, total_price, date, paid_by, version) 
+             VALUES (?, ?, ?, ?, ?,?, 1)`,
             [
               payment.tripId,
               payment.category,
               payment.description,
               payment.price,
+              payment.date,
               payment.pay,
             ]
           );

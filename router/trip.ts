@@ -20,6 +20,11 @@ router.post(
   verifyTokenMiddleware,
   tripController.uploadLocationThumbnail
 );
+router.get(
+  "/exist/:groupId",
+  verifyTokenMiddleware,
+  tripController.joinExistingGroup
+);
 // 여행 상세 조회
 router.get("/:tripId", verifyTokenMiddleware, tripController.getTripDetails);
 router.put(

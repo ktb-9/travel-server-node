@@ -191,5 +191,22 @@ class TripController {
       }
     });
   };
+  public joinExistingGroup = async (req: AuthRequest, res: Response) => {
+    const { groupId } = req.params;
+    try {
+      if (!req.user?.user_id) {
+        return res.status(401).json({ error: "인증이 필요합니다." });
+      }
+
+      const getTripId = await this.tripService.joinExistingGroup(
+        req.user.user_id,
+        parseInt(groupId)
+      );
+      res.status(201).json(getTripId);
+    } catch (error) {
+      console.error("트립 아이디 조회 오류", error);
+      res.status(500).json({ error: "트립 아이디 조회 에 실패했습니다." });
+    }
+  };
 }
 export default TripController;

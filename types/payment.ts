@@ -5,6 +5,7 @@ export interface PaymentData {
   pay: number;
   price: number;
   tripId: number;
+  date: string;
 }
 export interface Payment {
   paymentId: number;
