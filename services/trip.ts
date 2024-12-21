@@ -346,7 +346,8 @@ class TripService {
                 t.trip_id,
                 t.date,
                 t.created_date,
-                g.name as group_name
+                g.name as group_name,
+                g.finish
             FROM 
                 trip_tb t
             JOIN 
