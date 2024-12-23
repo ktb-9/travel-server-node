@@ -11,6 +11,7 @@ import previousRouter from "./router/previous";
 import expenseAnalysisRouter from "./router/ExpenseAnalysis";
 import historyRouter from "./router/history";
 import deleteRouter from "./router/delete";
+import appleRouter from "./router/apple";
 import { Pool, createPool } from "mysql2/promise";
 import { SocketService } from "./services/SocketService";
 import dbConfig from "./config/db.config";
@@ -58,6 +59,7 @@ app.use(express.json());
 app.set("port", process.env.PORT || 8000);
 
 app.use("/auth", kakaoRouter);
+app.use("/auth/apple", appleRouter);
 app.use("/group", groupRouter);
 app.use("/trip", tripRouter);
 app.use("/payment", paymentRouter);
