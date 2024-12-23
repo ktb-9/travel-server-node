@@ -10,3 +10,6 @@ data:
   DB_PORT: "{{ .Values.server.config.rdsPort }}"
   DB_NAME: "{{ .Values.server.config.rdsName }}"
   REDIRECT_URI: "{{ .Values.server.config.redirectUri }}"
+  APPLE_TEAM_ID: "{{ .Values.server.config.applTeamId }}"
+  APPLE_CLIENT_ID: "{{ .Values.server.config.appleClientId }}"
+  APPLE_KEY_ID: "{{ .Values.server.config.appleKeyId }}"

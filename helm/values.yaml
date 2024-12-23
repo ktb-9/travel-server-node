@@ -18,4 +18,7 @@ server:
     rdsPort: "3306"
     rdsName: "ktb9db"
     redirectUri: "http://healthkungya.s3-website.ap-northeast-2.amazonaws.com/oauth/kakao/callback"
+    applTeamId: "U98N3HMZJY"
+    appleClientId: "com.tkrhdrhkdduf.travelgraphy"
+    appleKeyId: "TXSR552WV4"
   enableSwagger: "false" # Swagger 활성화 여부 (true/false)
