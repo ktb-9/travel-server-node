@@ -4,7 +4,7 @@ global:
 
 # Server 서비스 설정
 server:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: ktb9/travel-server-node
     tag: 23
